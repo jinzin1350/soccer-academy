@@ -2,7 +2,9 @@
 
 The Pitch Ready standalone demo (`app/src/main/assets/index.html`) in a WebView.
 
-* No permissions, no network — the whole app is one offline HTML file.
+* One HTML file in a WebView, talking to a Supabase backend over HTTPS.
+* Internet is the only permission.
+* Coach and parent share one academy through a six-letter code each.
 * `minSdk 26` (Android 8.0), portrait, adaptive launcher icon.
 * The release build is debug-signed so the APK sideloads without a keystore.
 

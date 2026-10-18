@@ -14,7 +14,8 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
- * One offline page in a WebView. No network, no permissions.
+ * The Pitch Ready client in a WebView. The page itself ships inside the APK;
+ * it talks to Supabase over HTTPS for the shared academy records.
  *
  * The WebView is laid out inside the system bars on purpose. Drawing edge to
  * edge would not help: a WebView does not report window insets to CSS, so
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         s.setTextZoom(100);                  // the layout is fixed, ignore the system font scale
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
-        s.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        s.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         // everything stays in the app; a real link opens in the browser
         web.setWebViewClient(new WebViewClient() {
