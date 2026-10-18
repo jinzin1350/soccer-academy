@@ -1,0 +1,51 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build release APK (debug-signed, installs by sideload)
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Name the file
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/release/*.apk "out/PitchReady-${{ github.run_number }}.apk"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PitchReady-APK
+          path: out/*.apk
+          if-no-files-found: error
+
+      - name: Publish a release so the APK can be downloaded straight to a phone
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Pitch Ready 1.0.${{ github.run_number }}
+          body: |
+            Offline demo of Pitch Ready, packaged as an Android app.
+            Install: download the .apk on an Android phone and allow installing from this source.
+          files: out/*.apk
