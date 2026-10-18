@@ -37,7 +37,24 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build the APK
-        run: gradle assembleRelease --no-daemon --stacktrace
+        id: build
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+
+      # The sandbox that drives this repo cannot download run logs, so a failure
+      # is re-emitted as workflow annotations, which the API does expose.
+      - name: Surface the failure
+        if: failure()
+        run: |
+          echo "::group::tail of the build log"
+          tail -n 120 /tmp/build.log || true
+          echo "::endgroup::"
+          awk '/FAILURE:|What went wrong|Caused by|error:|Execution failed|> /' /tmp/build.log \
+            | head -n 25 | while IFS= read -r line; do
+              clean=$(printf '%s' "$line" | sed 's/%/%25/g; s/\r/ /g')
+              echo "::error::$clean"
+            done
 
       - name: Name the file
         run: |
