@@ -19,19 +19,30 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      # GitHub's ubuntu images already carry the Android SDK with licences
+      # accepted, so there is nothing to install — just make sure the pieces
+      # this build needs are present.
+      - name: Check the Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls "$ANDROID_HOME/platforms" || true
+          ls "$ANDROID_HOME/build-tools" || true
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-34" "build-tools;34.0.0" "platform-tools" || true
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Build release APK (debug-signed, installs by sideload)
+      - name: Build the APK
         run: gradle assembleRelease --no-daemon --stacktrace
 
       - name: Name the file
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/*.apk "out/PitchReady-${{ github.run_number }}.apk"
+          cp app/build/outputs/apk/release/*.apk "out/PitchReady-1.0.${{ github.run_number }}.apk"
           ls -la out
 
       - uses: actions/upload-artifact@v4
@@ -40,12 +51,16 @@ jobs:
           path: out/*.apk
           if-no-files-found: error
 
-      - name: Publish a release so the APK can be downloaded straight to a phone
+      - name: Publish a release so the APK downloads straight to a phone
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: Pitch Ready 1.0.${{ github.run_number }}
           body: |
-            Offline demo of Pitch Ready, packaged as an Android app.
-            Install: download the .apk on an Android phone and allow installing from this source.
+            Pitch Ready for Android.
+
+            Install: open this page on an Android phone, download the .apk,
+            and allow installing from this source when asked.
+
+            The coach signs in with the coach code; families use the family code.
           files: out/*.apk
