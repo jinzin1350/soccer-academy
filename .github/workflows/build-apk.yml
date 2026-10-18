@@ -50,8 +50,10 @@ jobs:
           echo "::group::tail of the build log"
           tail -n 120 /tmp/build.log || true
           echo "::endgroup::"
-          awk '/FAILURE:|What went wrong|Caused by|error:|Execution failed|> /' /tmp/build.log \
-            | head -n 25 | while IFS= read -r line; do
+          # everything from the first FAILURE marker onwards, plus any compiler errors
+          { sed -n '/^FAILURE:/,$p' /tmp/build.log
+            grep -E '^(e: |.*\.java:[0-9]+: error:|.*\.xml:[0-9]+: )' /tmp/build.log
+          } | grep -v '^$' | head -n 30 | while IFS= read -r line; do
               clean=$(printf '%s' "$line" | sed 's/%/%25/g; s/\r/ /g')
               echo "::error::$clean"
             done
