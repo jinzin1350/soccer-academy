@@ -26,6 +26,13 @@ android {
 }
 
 dependencies {
+    // Pins one Kotlin stdlib across the graph. Without it appcompat and its
+    // transitives drag in both kotlin-stdlib 1.8.x and the old jdk7/jdk8
+    // split artifacts, whose classes now overlap, and dexing fails on
+    // duplicate classes.
+    implementation platform("org.jetbrains.kotlin:kotlin-bom:1.9.24")
+
+    // Only AppCompatActivity and the back-press dispatcher are used; the
+    // WebView itself is the framework one, so androidx.webkit is not needed.
     implementation "androidx.appcompat:appcompat:1.7.0"
-    implementation "androidx.webkit:webkit:1.11.0"
 }
